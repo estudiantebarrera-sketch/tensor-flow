@@ -1,0 +1,29 @@
+# Entornos virtuales
+venv/
+env/
+entornoTensorFlow/
+entorno/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Variables de entorno
+.env
+
+# VS Code
+.vscode/
+
+# Datos temporales
+*.log
+
+# Modelos grandes
+*.h5
+*.keras
+*.pklgit 
+
+#Bases
+in/
