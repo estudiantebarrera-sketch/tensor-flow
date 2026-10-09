@@ -1,7 +1,7 @@
 # Entornos virtuales
 venv/
 env/
-entornoTensorFlow/
+.entornoTensorFlow/
 entorno/
 
 # Python

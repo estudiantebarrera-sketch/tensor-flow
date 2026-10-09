@@ -1,10 +1,12 @@
 from load import Load
 from utils import Utils
+from models import Models
 
 if __name__ == "__main__":
 
     load = Load()
     utils = Utils()
+    models = Models()
 
     #url_json = "./in/databasesLoadData/sign_mnist_json/data.json"
     #data = utils.load_from_json(url_json)
@@ -28,7 +30,13 @@ if __name__ == "__main__":
     test_dir = "./in/sign-language-img/Test"
 
     train_generator, validation_generator, test_generator, classes = load.normalizar(train_dir, test_dir)
-    print(classes)
+    history_model_base = models.model_base(train_generator, validation_generator, test_generator, classes)
+    #history_model_optimizer = models.model_optimizer(train_generator, validation_generator, test_generator, classes)
+    #history_model_convolutional = models.model_convolutional(train_generator, validation_generator, test_generator, classes)
+    utils.visualizacion_resultados(history_model_base, "model_base")
+
+
+
 
 
 
