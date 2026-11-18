@@ -73,29 +73,36 @@ class Utils:
         plt.savefig("./out/load_from_json.png", bbox_inches="tight", pad_inches=0)
         plt.close()
 
+
     def visualizacion_resultados(self, history, name):
-        epochs = [i for i in range(20)]
-        fig, ax = plt.subplots(1,2)
         train_acc = history.history["accuracy"]
         train_loss = history.history["loss"]
         val_acc = history.history["val_accuracy"]
         val_loss = history.history["val_loss"]
+
+        # Ajustar automáticamente según las épocas ejecutadas
+        epochs = range(1, len(train_acc) + 1)
+
+        fig, ax = plt.subplots(1, 2)
         fig.set_size_inches(16, 9)
 
-        ax[0].plot(epochs, train_acc, "go-", label =" Entrenamiento accuracy")
-        ax[0].plot(epochs, val_acc, "ro-", label= "Validacion accuracy")
+        ax[0].plot(epochs, train_acc, "go-", label="Entrenamiento accuracy")
+        ax[0].plot(epochs, val_acc, "ro-", label="Validación accuracy")
         ax[0].set_title("Entrenamiento & validación accuracy")
         ax[0].legend()
         ax[0].set_xlabel("Epochs")
         ax[0].set_ylabel("Accuracy")
 
-        ax[1].plot(epochs, train_loss, "go-", label =" Entrenamiento Loss")
-        ax[1].plot(epochs, val_loss, "ro-", label= "Validacion Loss")
+        ax[1].plot(epochs, train_loss, "go-", label="Entrenamiento Loss")
+        ax[1].plot(epochs, val_loss, "ro-", label="Validación Loss")
         ax[1].set_title("Entrenamiento & validación Loss")
         ax[1].legend()
         ax[1].set_xlabel("Epochs")
         ax[1].set_ylabel("Loss")
 
-        #plt.show()
-        plt.savefig(f"./out/history_{name}.png", bbox_inches="tight", pad_inches=0)
+        plt.savefig(
+            f"./out/history_{name}.png",
+            bbox_inches="tight",
+            pad_inches=0
+        )
         plt.close()

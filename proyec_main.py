@@ -310,3 +310,156 @@ model_weights2.compile(optimizer = "adam", loss = "categorical_crossentropy", me
 model_weights2.load_weights(checkpoint_path)  #Cargar los pesos al modelo
 model_weights2.evaluate(test_generator)
 model_weight.evaluate(test_generator)
+
+## Criterios para almacenar modelos
+#### Almacenar infraestructura y peso
+
+checkpoint_path = "model_checpoints_complete"
+checkpoint_weighs= ModelCheckpoint(
+    filepath = checkpoint_path,
+    frecuency = "epoch",
+    save_weights_only = False,
+    monitor = "val_accuracy",
+    save_best_only = True,
+    verbose = 1
+
+)
+
+model_complete = get_model()
+model_complete.compile(optimizer = "adam", loss = "categorical_crossentropy", metrics = ["accuracy"])
+
+history_complete = model_complete.fit(
+    train_generator,
+    epochs = 20,
+    callbacks = [checkpoint_weighs],
+    validation_data = validation_generator
+)
+#### Almacenar infraestructura y peso manual
+model_complete.save("saved_model_complete/mymodel")
+
+## Cargamos nuestro modelo completo
+model_complete3 = tf.keras.models.load_model("saved_model_complete/mymodel")
+model_complete3.evaluate(test_generator)
+
+model_complete.evaluate(test_generator)
+
+#### Usar el formato .h5 para guardar modelos
+#Hierarchical Data Format (HDF5 format)
+
+#!pip install pyyaml h5py
+model_complete3.save("my_model.h5")
+model_complete4 = tf.keras.models.load_model("my_model.h5")
+
+## Creamos nuestra modelo pre-entrenado con modelos de Keras
+#### Preprocesamiento de nuestra base de datos
+#Debemos revisar cual es el input de nuestro modelos (Tamaño del tensor de entrada)
+
+train_generator_resize = train_datagen.flow_from_directory(
+    train_dir,
+    target_size = (150, 150),
+    batch_size = 128,
+    class_mode = "categorical",
+    color_mode = "rgb",
+    subset = "training"
+)
+
+validation_generator_resize = test_datagen.flow_from_directory(
+    test_dir,
+    target_size = (150, 150),
+    batch_size = 128,
+    class_mode = "categorical",
+    color_mode = "rgb",
+    subset = "validation"
+)
+
+test_generator_resize = test_datagen.flow_from_directory(
+    test_dir,
+    target_size = (150, 150),
+    batch_size = 128,
+    class_mode = "categorical",
+    color_mode = "rgb"
+)
+
+from tensorflow.keras.applications.inception_v3 import InceptionV3
+
+pre_trained_model = InceptionV3(
+    include_top = False,
+    input_tensor = tf.keras.layers.Input(shape = (150, 150, 3))
+)
+
+for layer in pre_trained_model.layers:
+  layer.trainable = False
+
+pre_trained_model.summary()
+
+#### Congelamos el modelo 
+# Congelamos hasta la capa mixed 7 para agregar nuestra capas de salida.
+
+last_layers= pre_trained_model.get_layer("mixed7")
+last_output = last_layers.output
+
+x = tf.keras.layers.Flatten()(last_output)
+x = tf.keras.layers.Dense(128, activation = "relu")(x)
+x = tf.keras.layers.Dropout(0.2)(x)
+x = tf.keras.layers.Dense(len(classes), activation= "softmax")(x)
+
+model_keras = tf.keras.Model(pre_trained_model.input, x)
+
+model_keras.compile(optimizer= "adam", loss = "categorical_crossentropy", metrics = ["accuracy"])
+model_keras.summary()
+
+history_keras = model_keras.fit(
+    train_generator_resize,
+    epochs = 5,
+    validation_data = validation_generator_resize
+)
+
+## Creamos nuestra modelo pre-entrenado con modelos desde TensorFlow Hub
+import tensorflow_hub as hub
+module_url = "https://tfhub.dev/google/imagenet/mobilenet_v1_050_160/classification/4"
+
+model_hub = tf.keras.Sequential([
+                                 tf.keras.layers.InputLayer(input_shape=(150, 150, 3)),
+                                 hub.KerasLayer(module_url, trainable=False),
+                                 tf.keras.layers.Flatten(),
+                                 tf.keras.layers.Dense(128, activation ="relu"),
+                                 tf.keras.layers.Dropout(rate=0.2),
+                                 tf.keras.layers.Dense(len(classes), activation = "softmax")
+])
+
+model_hub.build((None, 150, 150, 3))
+model_hub.summary()
+
+model_hub.compile(optimizer= "adam", loss = "categorical_crossentropy", metrics = ["accuracy"])
+
+history_hub = model_hub.fit(
+    train_generator_resize,
+    epochs= 5,
+    validation_data = validation_generator_resize
+)
+results = model_hub.evaluate(test_generator_resize)
+
+# Conectar con TensorBoard
+
+from tensorflow.python.keras.callbacks import TensorBoard
+from time import time
+
+model_tensorboard = get_model()
+model_tensorboard.compile(optimizer = "adam", loss = "categorical_crossentropy", metrics = ["accuracy"])
+
+callback_tensorboard = TensorBoard(log_dir = "logs/{}".format(time()))
+
+history_tensorboard = model_tensorboard.fit(
+    train_generator,
+    epochs = 20,
+    callbacks = [callback_tensorboard],
+    validation_data = validation_generator
+)
+
+#### Ejecutamos nuestro tensorboard con los comandos magic Se puede visualizar desde Google Colab o desde el terminal
+
+"""load_ext tensorboard
+tensorboard --logdir logs 
+
+## Comportamos los resultados con el mundo entero
+Mayor información ingresa sobre Tensorflow.dev [aquí](https://tensorboard.dev/)"""
